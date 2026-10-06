@@ -8,14 +8,14 @@
 
 typedef Layer<Pixel> LayerP;
 
-
-class Frame: public LayerP{
+template<typename T>
+class Frame: public Layer<T>{
 public:
-    typedef LayerP layer_t;
+    typedef Layer<T> layer_t;
 
-    Frame(const layer_t::cord_component_t& width, const layer_t::cord_component_t& height): LayerP(width, height) 
+    Frame(const layer_t::cord_component_t& width, const layer_t::cord_component_t& height): layer_t(width, height) 
     {}
-    Frame(const LayerP& layer): LayerP(layer) 
+    Frame(const layer_t& layer): layer_t(layer) 
     {}
 
     Frame& operator=(const layer_t& rhs){
@@ -39,18 +39,22 @@ public:
 };
 
 
-template<typename Element>
+template<typename Element, typename Element2>
 class BlendLayer{
 public:
-    typedef Layer<Element> layer_t;
-    typedef Frame frame_t;
+    typedef Layer<Element>  layer_t;
+    typedef Frame<Element2> frame_t;
     typedef Layer<Element>::cord_component_t cord_component_t;
     typedef char code_flag_t;
     
-    void fillClear(std::function<void(Pixel&)> f = [](Pixel& p) {p.setKcharStdStrind(" "); }) {
+    void fillClear(layer_t& layer, std::function<void(Pixel&)> f = [](Pixel& p) {p.setKcharStdStrind(" "); }) {
         for(cord_component_t i = 0; i < frame.getWidthPixelUShort(); ++i)
             for(cord_component_t j = 0; j < frame.getHeightPixelUShort(); ++j)
-                f(frame.getPixel(i, j));
+                f(layer.getPixel(i, j));
+    }
+
+    void fillClear(std::function<void(Pixel&)> f = [](Pixel& p) {p.setKcharStdStrind(" "); }) {
+        fillClear(frame, f);
     }
 
     virtual code_flag_t blendLayer(const layer_t& layer){
@@ -69,3 +73,6 @@ public:
 protected:
     frame_t frame;
 };
+
+
+typedef Frame<Pixel> FrameP;

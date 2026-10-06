@@ -2,6 +2,7 @@
 
 #include "PixelLayer.h"
 #include <cmath>
+#include <functional>
 #include <utility>
 
 
@@ -68,4 +69,12 @@ public:
     
     virtual bool generateLayer(layer_t& layer, screen_normalize_t& screenNormalize){ return false; } 
     virtual ~FGShader(){}
+
+    void forForIJ(const layer_t& layer, std::function<void(const layer_t::cord_component_t& i ,const layer_t::cord_component_t& j)> func){
+        for(layer_t::cord_component_t i = 0; i < layer.getHeightPixelUShort(); ++i){
+            for(layer_t::cord_component_t j = 0; j < layer.getWidthPixelUShort(); ++j){
+                func(i, j);
+            }
+        }
+    }
 };

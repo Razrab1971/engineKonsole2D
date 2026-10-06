@@ -1,4 +1,5 @@
 #include "BlendLayer.h"
+#include "FGShader.h"
 #include "PixelLayer.h"
 #include "Window.h"
 #include "engineKonsole"
@@ -55,7 +56,7 @@ public:
                 x = point.first;
                 y = point.second;
 
-                if( std::abs(x * x + y * y) > 0.1  && std::abs(x * x - y * y) < 0.2 ){
+                if( std::abs(x * x - y * y) > 0.1  && std::abs(x * x - y * y) < 0.2 ){
                     pixel.setKchar("-");
                 }else{
                     pixel.setKchar(" ");
@@ -67,7 +68,34 @@ public:
     }
 };
 
-class SampleBlendLayer: public BlendLayer<Pixel>{
+class SampleFGShader3: public FGShader{
+public:
+    bool generateLayer(layer_t& layer, screen_normalize_t& screenNormalize) override{
+        
+        screen_normalize_t::cord_xy_t point;
+        screen_normalize_t::component_xy_t x, y;
+
+        FGShader::forForIJ(layer, [&](const auto& i, const auto& j){
+                layer_t::element_t& pixel = layer.getPixel(i, j);
+                point = screenNormalize.getXYCordXY(i, j, layer);
+
+                point = screenNormalize.scaleXYCordXY(point, 10);
+
+                x = point.first;
+                y = point.second - 4;
+
+                if( ( y * y - x) > 0.1  && (y * y - x) < 8 ){
+                    pixel.setKchar("-");
+                }else{
+                    pixel.setKchar(" ");
+                }
+        });
+        
+        return true;
+    }
+};
+
+class SampleBlendLayer: public BlendLayer<Pixel, Pixel>{
 public:
     SampleBlendLayer(const cord_component_t& width, const cord_component_t& height): BlendLayer{width, height}
     {}
@@ -82,6 +110,10 @@ public:
                 if(pixel1.getKchar() == "-"){
                     if(pixel2.getKchar() == "*"){
                         pixel2.setKchar("=");
+                    }else if(pixel2.getKchar() == "-"){
+                        pixel2.setKchar("@");
+                    }else if(pixel2.getKchar() == "="){
+                        pixel2.setKchar("$");
                     }else{
                         pixel2.setKchar("-");
                     }
@@ -107,6 +139,7 @@ public:
     void drawScreen(std::ostream& ost) override {
         SampleFGShader1 sh1;
         SampleFGShader2 sh2;
+        SampleFGShader3 sh3;
         
         LayerP& layer1 = swapChain.getLayers()[0];
         LayerP& layer2 = swapChain.getLayers()[1];
@@ -117,6 +150,11 @@ public:
 
             sh2.generateLayer(layer2, screenNormalize);
             blendLayer.blendLayer(layer2);
+            
+            // blendLayer.fillClear(layer2);
+            sh3.generateLayer(layer2, screenNormalize);
+            blendLayer.blendLayer(layer2);
+
             blendLayer.getFrame().drawFrame(ost);
         }
     }

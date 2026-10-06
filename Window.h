@@ -4,8 +4,6 @@
 #include "BlendLayer.h"
 #include "PixelLayer.h"
 
-typedef BlendLayer<Pixel> BlendLayerP;
-
 class Window{
 public:
     typedef LayerP::cord_component_t cord_component_t;
